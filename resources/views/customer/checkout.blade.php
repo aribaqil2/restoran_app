@@ -65,11 +65,14 @@
                                         @php
                                             $itemTotal = $item['price'] * $item['qty'];
                                             $subTotal += $itemTotal;
+                                            $imageUrl = filter_var($item['image'], FILTER_VALIDATE_URL)
+                                                ? $item['image']
+                                                : asset('img_item_upload/' . $item['image']);
                                         @endphp
                                     <tr>
                                         <th scope="row">
                                             <div class="d-flex align-items-center mt-2">
-                                                <img src="{{ asset('img_item_upload/'. $item['image']) }}" class="img-fluid me-5 rounded-circle" style="width: 80px; height: 80px;" alt="" onerror="this.onerror=null;this.src='{{  $item['image'] }}';">
+                                                <img src="{{ $imageUrl }}" class="img-fluid me-5 rounded-circle" style="width: 80px; height: 80px;" alt="" onerror="this.onerror=null;this.src='{{  $item['image'] }}';">
                                             </div>
                                         </th>
                                         <td class="py-5">{{ $item['name'] }}</td>
@@ -159,11 +162,32 @@
                     method: "POST",
                     body: formData,
                     headers: {
-                        "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                        "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                        "X-Requested-With": "XMLHttpRequest"
                     }
                 })
-                .then(response => response.json())
+                .then(async response => {
+                    const text = await response.text();
+                    if (!response.ok) {
+                        let message = text;
+                        try {
+                            const json = JSON.parse(text);
+                            message = json.message || JSON.stringify(json);
+                        } catch (ignored) {}
+                        throw new Error(message || 'Server response error');
+                    }
+                    try {
+                        return JSON.parse(text);
+                    } catch (error) {
+                        throw new Error('Respons server bukan JSON');
+                    }
+                })
                 .then(data => {
+                    if (data.status !== 'success') {
+                        const message = data.message || 'Terjadi kesalahan, silakan coba lagi.';
+                        alert(message);
+                        return;
+                    }
                     if(data.snap_token) {
                         snap.pay(data.snap_token, {
                             onSuccess: function(result) {

@@ -136,6 +136,13 @@ class MenuController extends Controller
         ]);
 
         if ($validator->fails()) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Validasi gagal',
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
             return redirect()->route('checkout')->withErrors($validator);
         }
 
