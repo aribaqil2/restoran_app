@@ -62,8 +62,13 @@
                         <span>Daftar Menu</span>
                     </a>
                 </li>
+                <li class="sidebar-item {{ request()->routeIs('admin.tables.qrcode') ? 'active' : '' }}">
+                    <a href="{{ route('admin.tables.qrcode') }}" class='sidebar-link'>
+                        <i class="bi bi-qr-code-scan"></i>
+                        <span>QR Code Meja</span>
+                    </a>
+                </li>
                 @if (Auth::user()->role->role_name == 'admin')
-                <li class="sidebar-item {{ request()->routeIs('users.*') ? 'active' : '' }}">
                     <a href="{{ route('users.index') }}" class='sidebar-link'>
                         <i class="bi bi-people-fill"></i>
                         <span>Manajemen Karyawan</span>
